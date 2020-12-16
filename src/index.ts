@@ -116,13 +116,7 @@ const getStock = async () => {
       const toopen = link_base + item_id;
       console.log(title);
       console.log("Open:", toopen);
-      const safeurl = toopen
-        .replace("?", "\\?")
-        .replace("=", "\\=")
-        .replace("&", "\\&");
-      console.log(safeurl);
       connectBrowser(toopen);
-      return 60000;
     }
   }
 
