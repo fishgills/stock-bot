@@ -5,6 +5,7 @@ import parser from "node-html-parser";
 import url from "url";
 import Table from "cli-table";
 import puppeteer from "puppeteer";
+import notifier from "node-notifier";
 
 const width = 1920;
 const height = 1080;
@@ -35,7 +36,7 @@ const connectBrowser = async (url: string) => {
   const browser = await puppeteer.launch({
     headless: false,
     args: [
-      "--user-data-dir=/tmp/user-data",
+      // "--user-data-dir=./bot-data",
       `--window-size=${width},${height}`,
     ],
     defaultViewport: {
@@ -122,9 +123,10 @@ const getStock = async () => {
 
   console.log(table.toString());
   if (inStock) {
+    notifier.notify("In Stock!");
     return 30000;
   } else {
-    return 10000;
+    return 3000;
   }
 };
 
