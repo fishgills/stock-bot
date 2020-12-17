@@ -5,12 +5,13 @@ import parser from "node-html-parser";
 import url from "url";
 import Table from "cli-table";
 import puppeteer from "puppeteer";
-import notifier from "node-notifier";
+// import notifier from "node-notifier";
+import newegg from 'neweggparser';
 
 const width = 1920;
 const height = 1080;
 
-const config_path = "./config.yml";
+const config_path = "./config.ymfl";
 const link_base =
   "https://secure.newegg.com/Shopping/AddtoCart.aspx?Submit=ADD&ItemList=";
 
@@ -70,7 +71,18 @@ const connectBrowser = async (url: string) => {
   }
 };
 
-const getStock = async () => {
+const gatherInfo = async (ids: string[]) => {
+  const prodPromises = ids.map((id) => {
+    return newegg.getItem(id, 'com');
+  })
+  
+  for(const prom of prodPromises) {
+    console.log(await prom);
+  }
+  
+}
+
+const getStock = async (): Promise<string[]> => {
   console.log("Get Stock started");
 
   const result = await axios.get(config.sites.newegg_3080, {
@@ -85,11 +97,13 @@ const getStock = async () => {
   const root = parser(result.data);
   const cells = root.querySelectorAll(".item-cell");
 
-  const table = new Table({
-    head: ["ID", "In Stock", "Name", "Link"],
-    colWidths: [20, 10, 50, 150],
-  });
-  let inStock = false;
+  // const table = new Table({
+  //   head: ["ID", "In Stock", "Name", "Link"],
+  //   colWidths: [20, 10, 50, 150],
+  // });
+  // let inStock = false;
+
+  const ids: string[] = []
 
   for (let i = 0; cells[i]; i++) {
     let cell = cells[i];
@@ -104,30 +118,32 @@ const getStock = async () => {
     const link = anchor.getAttribute("href") as string;
     const parsed_url = url.parse(link, true);
     const item_id = parsed_url.query.Item
-      ? parsed_url.query.Item
+      ? parsed_url.query.Item as string
       : baseName(parsed_url.pathname as string);
 
-    if (cell.querySelector(".item-operate .item-button-area button.btn")) {
-      inStock = true;
-    }
+      ids.push(item_id);
+    // if (cell.querySelector(".item-operate .item-button-area button.btn")) {
+    //   inStock = true;
+    // }
 
-    table.push([item_id, inStock, title, link]);
+    // table.push([item_id, inStock, title, link]);
 
-    if (inStock) {
-      const toopen = link_base + item_id;
-      console.log(title);
-      console.log("Open:", toopen);
-      connectBrowser(toopen);
-    }
+    // if (inStock) {
+    //   const toopen = link_base + item_id;
+    //   console.log(title);
+    //   console.log("Open:", toopen);
+    //   connectBrowser(toopen);
+    // }
   }
 
-  console.log(table.toString());
-  if (inStock) {
-    notifier.notify("In Stock!");
-    return 30000;
-  } else {
-    return 3000;
-  }
+  // console.log(table.toString());
+  // if (inStock) {
+  //   notifier.notify("In Stock!");
+  //   return 30000;
+  // } else {
+  //   return 3000;
+  // }
+  return ids;
 };
 
 const poll = async (fn: () => Promise<number>) => {
@@ -147,5 +163,8 @@ const wait = (ms = 1000) => {
 };
 
 (async () => {
-  await poll(getStock);
+  const productIds = await getStock();
+  gatherInfo(productIds);
+  console.log(productIds);
+  // await poll();
 })();

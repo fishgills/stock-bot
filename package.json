@@ -33,6 +33,7 @@
     "axios": "^0.21.0",
     "cli-table": "^0.3.4",
     "js-yaml": "^3.14.1",
+    "neweggparser": "^1.0.1",
     "node-html-parser": "^2.0.0",
     "node-notifier": "^8.0.1",
     "puppeteer": "^5.5.0"
